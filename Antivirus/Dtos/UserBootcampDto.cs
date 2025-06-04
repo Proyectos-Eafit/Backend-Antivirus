@@ -1,15 +1,20 @@
-namespace Antivirus.Dtos
+using System.ComponentModel.DataAnnotations;
+
+namespace Antivirus.DTOs
 {
-    public class UsersBootcampsDto
+    public class UsersBootcampsReadDTO
     {
-        public long id { get; set; }
-        public long? id_bootcamp { get; set; }
-        public long? id_usuario { get; set; }
+        public long Id { get; set; }
+        public long? BootcampId { get; set; }
+        public long? UserId { get; set; }
     }
 
-    public class UsersBootcampsCreatedDto
+    public class UsersBootcampsCreateDTO
     {
-        public long? id_bootcamp { get; set; }
-        public long? id_usuario { get; set; }
+        [Required]
+        public long BootcampId { get; set; }
+
+        [Required]
+        public long UserId { get; set; }
     }
 }

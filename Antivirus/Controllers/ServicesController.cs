@@ -1,4 +1,4 @@
-using Antivirus.Dtos;
+using Antivirus.DTOs;
 using Antivirus.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +22,7 @@ namespace Antivirus.Controllers
         // GET: api/Services
         [HttpGet]
         [AllowAnonymous] 
-        public async Task<ActionResult<IEnumerable<ServiceDTO>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ServiceReadDTO>>> GetAll()
         {
             var services = await _service.GetAllAsync();
             return Ok(services);
@@ -31,7 +31,7 @@ namespace Antivirus.Controllers
         // GET: api/Services/{id}
         [HttpGet("{id}")]
         [AllowAnonymous] 
-        public async Task<ActionResult<ServiceDTO>> GetById(long id)
+        public async Task<ActionResult<ServiceReadDTO>> GetById(long id)
         {
             var service = await _service.GetByIdAsync(id);
             if (service == null) return NotFound();
@@ -40,7 +40,7 @@ namespace Antivirus.Controllers
 
         // POST: api/Services
         [HttpPost]
-        public async Task<ActionResult<ServiceDTO>> Create(ServiceCreateDTO dto)
+        public async Task<ActionResult<ServiceReadDTO>> Create(ServiceCreateDTO dto)
         {
             var createdService = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = createdService.Id }, createdService);
@@ -48,7 +48,7 @@ namespace Antivirus.Controllers
 
         // PUT: api/Services/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServiceDTO>> Update(long id, ServiceCreateDTO dto)
+        public async Task<ActionResult<ServiceReadDTO>> Update(long id, ServiceCreateDTO dto)
         {
             var updatedService = await _service.UpdateAsync(id, dto);
             if (updatedService == null) return NotFound();

@@ -1,29 +1,27 @@
-using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
 
-namespace Antivirus.Models.DTOs
+namespace Antivirus.DTOs
 {
-    public class BootcampDto
+    public class BootcampReadDTO
     {
         public long Id { get; set; }
-        public string Nombre { get; set; } = null!;
-        public long? IdCostosId { get; set; }
-        public long? IdEstadoId { get; set; }
-        public long? IdGeneralId { get; set; }
-        public long? IdTemasId { get; set; }
-        [JsonPropertyName("informacion")]
-        public string? Informacion { get; set; }
-        public char? Trial751 { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string? ImageUrl { get; set; }
+        public bool Status { get; set; }
     }
-    public class BootcampCreateDto
-    {
-        public string Nombre { get; set; } = null!;
-        public long? IdCostosId { get; set; }
-        public long? IdEstadoId { get; set; }
-        public long? IdGeneralId { get; set; }
-        public long? IdTemasId { get; set; }
-        [JsonPropertyName("informacion")]
 
-        public string? Informacion { get; set; }
-        public char? Trial751 { get; set; }
+    public class BootcampCreateDTO
+    {
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; }
+
+        [Required]
+        [StringLength(1000)]
+        public string Description { get; set; }
+
+        public string? ImageUrl { get; set; }
+        public bool Status { get; set; }
     }
 }

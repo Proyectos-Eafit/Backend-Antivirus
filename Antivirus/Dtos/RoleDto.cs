@@ -1,12 +1,18 @@
-namespace Antivirus.Dtos
+using System.ComponentModel.DataAnnotations;
+
+namespace Antivirus.DTOs
 {
-    public class RoleDto
+    public class RoleReadDTO
     {
         public long Id { get; set; }
         public string? Name { get; set; }
+        public bool Status { get; set; }
     }
-    public class RoleCreateDto
+
+    public class RoleCreateDTO
     {
-        public string? Name { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; }
     }
 }

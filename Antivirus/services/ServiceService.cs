@@ -1,4 +1,4 @@
-using Antivirus.Dtos;
+using Antivirus.DTOs;
 using Antivirus.Models;
 using Antivirus.Data;
 using Microsoft.EntityFrameworkCore;
@@ -17,70 +17,76 @@ namespace Antivirus.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<ServiceDTO>> GetAllAsync()
+        public async Task<IEnumerable<ServiceReadDTO>> GetAllAsync()
         {
             return await _context.Services
-                .Select(s => new ServiceDTO
+                .Select(s => new ServiceReadDTO
                 {
                     Id = s.Id,
                     Name = s.Name,
                     Description = s.Description,
-                    image_url = s.image_url 
+                    ImageUrl = s.ImageUrl,
+                    Status = s.Status
                 })
                 .ToListAsync();
         }
 
-        public async Task<ServiceDTO> GetByIdAsync(long id)
+        public async Task<ServiceReadDTO?> GetByIdAsync(long id)
         {
             var service = await _context.Services.FindAsync(id);
             if (service == null) return null;
 
-            return new ServiceDTO
+            return new ServiceReadDTO
             {
                 Id = service.Id,
                 Name = service.Name,
                 Description = service.Description,
-                image_url = service.image_url 
+                ImageUrl = service.ImageUrl,
+                Status = service.Status
             };
         }
 
-        public async Task<ServiceDTO> CreateAsync(ServiceCreateDTO dto)
+        public async Task<ServiceReadDTO> CreateAsync(ServiceCreateDTO dto)
         {
             var service = new Service
             {
                 Name = dto.Name,
                 Description = dto.Description,
-                image_url = dto.image_url 
+                ImageUrl = dto.ImageUrl,
+                Status = true // O el valor por defecto que prefieras
             };
 
             _context.Services.Add(service);
             await _context.SaveChangesAsync();
 
-            return new ServiceDTO
+            return new ServiceReadDTO
             {
                 Id = service.Id,
                 Name = service.Name,
                 Description = service.Description,
-                image_url = service.image_url 
+                ImageUrl = service.ImageUrl,
+                Status = service.Status
             };
         }
 
-        public async Task<ServiceDTO> UpdateAsync(long id, ServiceCreateDTO dto)
+        public async Task<ServiceReadDTO?> UpdateAsync(long id, ServiceCreateDTO dto)
         {
             var service = await _context.Services.FindAsync(id);
             if (service == null) return null;
 
             service.Name = dto.Name;
             service.Description = dto.Description;
-            service.image_url = dto.image_url; 
+            service.ImageUrl = dto.ImageUrl;
+
             await _context.SaveChangesAsync();
 
-            return new ServiceDTO
+            return new ServiceReadDTO
             {
                 Id = service.Id,
                 Name = service.Name,
                 Description = service.Description,
-                image_url = service.image_url 
+                ImageUrl = service.ImageUrl,
+                Status = service.Status
             };
         }
 

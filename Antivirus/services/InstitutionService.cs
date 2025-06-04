@@ -1,8 +1,9 @@
 using Antivirus.Data;
 using Antivirus.DTOs;
-using Antivirus.Mappers;
 using Antivirus.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Antivirus.Services
 {
@@ -15,51 +16,94 @@ namespace Antivirus.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<InstitutionResponseDto>> GetAllAsync()
+        public async Task<IEnumerable<InstitutionsReadDTO>> GetAllAsync()
         {
-            var institutions = await _context.Set<institutions>().ToListAsync();
-            return institutions.ConvertAll(inst => inst.ToResponseDto());
+            var institutions = await _context.Institutions.ToListAsync();
+            return institutions.Select(inst => new InstitutionsReadDTO
+            {
+                Id = inst.Id,
+                Name = inst.Name,
+                Observations = inst.Observations,
+                BienestarLink = inst.BienestarLink,
+                CarerLink = inst.CarerLink,
+                GeneralLink = inst.GeneralLink,
+                ProccesLink = inst.ProccesLink,
+                UbicationsInstitutionsId = inst.UbicationsInstitutionsId,
+                Status = inst.Status
+            });
         }
 
-        public async Task<InstitutionResponseDto> GetByIdAsync(long id)
+        public async Task<InstitutionsReadDTO?> GetByIdAsync(long id)
         {
-            var institution = await _context.Set<institutions>().FindAsync(id);
-            return institution?.ToResponseDto();
+            var inst = await _context.Institutions.FindAsync(id);
+            if (inst == null) return null;
+            return new InstitutionsReadDTO
+            {
+                Id = inst.Id,
+                Name = inst.Name,
+                Observations = inst.Observations,
+                BienestarLink = inst.BienestarLink,
+                CarerLink = inst.CarerLink,
+                GeneralLink = inst.GeneralLink,
+                ProccesLink = inst.ProccesLink,
+                UbicationsInstitutionsId = inst.UbicationsInstitutionsId,
+                Status = inst.Status
+            };
         }
 
-        public async Task<InstitutionResponseDto> CreateAsync(InstitutionRequestDto institutionDto)
+        public async Task<InstitutionsReadDTO> CreateAsync(InstitutionsCreateDTO dto)
         {
-            var institution = institutionDto.ToEntity();
-            _context.Set<institutions>().Add(institution);
+            var inst = new Institution
+            {
+                Name = dto.Name,
+                Observations = dto.Observations,
+                BienestarLink = dto.BienestarLink,
+                CarerLink = dto.CarerLink,
+                GeneralLink = dto.GeneralLink,
+                ProccesLink = dto.ProccesLink,
+                UbicationsInstitutionsId = dto.UbicationsInstitutionsId,
+                Status = dto.Status // Ahora Status es bool, no hace falta comparar
+            };
+            _context.Institutions.Add(inst);
             await _context.SaveChangesAsync();
-            return institution.ToResponseDto();
+            return new InstitutionsReadDTO
+            {
+                Id = inst.Id,
+                Name = inst.Name,
+                Observations = inst.Observations,
+                BienestarLink = inst.BienestarLink,
+                CarerLink = inst.CarerLink,
+                GeneralLink = inst.GeneralLink,
+                ProccesLink = inst.ProccesLink,
+                UbicationsInstitutionsId = inst.UbicationsInstitutionsId,
+                Status = inst.Status
+            };
         }
 
-        public async Task<bool> UpdateAsync(long id, InstitutionRequestDto institutionDto)
+        public async Task<bool> UpdateAsync(long id, InstitutionsCreateDTO dto)
         {
-            var institution = await _context.Set<institutions>().FindAsync(id);
-            if (institution == null) return false;
+            var inst = await _context.Institutions.FindAsync(id);
+            if (inst == null) return false;
 
-            institution.bienestar_link = institutionDto.BienestarLink;
-            institution.carer_link = institutionDto.CarerLink;
-            institution.directions = institutionDto.Directions;
-            institution.general_link = institutionDto.GeneralLink;
-            institution.procces_link = institutionDto.ProccesLink;
-            institution.id_status = institutionDto.IdStatus;
-            institution.ubications_institutions = institutionDto.UbicationsInstitutions;
-            institution.name = institutionDto.Name;
-            institution.observations = institutionDto.Observations;
+            inst.Name = dto.Name;
+            inst.Observations = dto.Observations;
+            inst.BienestarLink = dto.BienestarLink;
+            inst.CarerLink = dto.CarerLink;
+            inst.GeneralLink = dto.GeneralLink;
+            inst.ProccesLink = dto.ProccesLink;
+            inst.UbicationsInstitutionsId = dto.UbicationsInstitutionsId;
+            inst.Status = dto.Status; // Ahora Status es bool
 
-            _context.Set<institutions>().Update(institution);
             await _context.SaveChangesAsync();
             return true;
         }
+
         public async Task<bool> DeleteAsync(long id)
         {
-            var institution = await _context.Set<institutions>().FindAsync(id);
-            if (institution == null) return false;
+            var inst = await _context.Institutions.FindAsync(id);
+            if (inst == null) return false;
 
-            _context.Set<institutions>().Remove(institution);
+            _context.Institutions.Remove(inst);
             await _context.SaveChangesAsync();
             return true;
         }

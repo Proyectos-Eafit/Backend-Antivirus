@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Antivirus.Services;
 using Antivirus.DTOs;
-using Antivirus.Mappers;
 using Antivirus.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;

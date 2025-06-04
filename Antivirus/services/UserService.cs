@@ -1,9 +1,8 @@
 using Antivirus.DTOs;
 using Antivirus.Models;
-using Antivirus.Mappers;
 using Microsoft.EntityFrameworkCore;
-using Antivirus.config;
 using Antivirus.Data;
+using Antivirus.config; // Si usas PasswordHasher
 
 namespace Antivirus.Services
 {
@@ -16,48 +15,94 @@ namespace Antivirus.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<RegisterUserDto>> GetAllUsersAsync()
+        public async Task<IEnumerable<UsersReadDTO>> GetAllUsersAsync()
         {
-            var users = await _context.users.ToListAsync();
-            return users.Select(UserMapper.MapUserToRegisterUserDto);
+            var users = await _context.Users.ToListAsync();
+            return users.Select(u => new UsersReadDTO
+            {
+                Id = u.Id,
+                Name = u.Name,
+                LastName = u.LastName,
+                Email = u.Email,
+                DateBirth = u.DateBirth
+            });
         }
 
-        public async Task<RegisterUserDto> GetUserByIdAsync(long id)
+        public async Task<UsersReadDTO?> GetUserByIdAsync(long id)
         {
-            var user = await _context.users.FindAsync(id);
-            return user == null ? null : UserMapper.MapUserToRegisterUserDto(user);
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return null;
+            return new UsersReadDTO
+            {
+                Id = user.Id,
+                Name = user.Name,
+                LastName = user.LastName,
+                Email = user.Email,
+                DateBirth = user.DateBirth
+            };
         }
 
-        public async Task<RegisterUserDto> CreateUserAsync(RegisterUserDto userDto)
+        public async Task<UsersReadDTO> CreateUserAsync(UsersCreateDTO userDto)
         {
-            var user = UserMapper.MapRegisterUserDtoToUser(userDto);
-            _context.users.Add(user);
+            var user = new User
+            {
+                Name = userDto.Name,
+                LastName = userDto.LastName,
+                Email = userDto.Email,
+                Password = PasswordHasher.HashPassword(userDto.Password), // Hashea la contraseña
+                DateBirth = userDto.DateBirth
+            };
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return UserMapper.MapUserToRegisterUserDto(user);
+
+            // Asignar rol "Usuario" (Id = 1) por defecto
+            var userRole = new UserRole
+            {
+                UserId = user.Id,
+                RoleId = 1 // Usuario
+            };
+            _context.UserRoles.Add(userRole);
+            await _context.SaveChangesAsync();
+
+            return new UsersReadDTO
+            {
+                Id = user.Id,
+                Name = user.Name,
+                LastName = user.LastName,
+                Email = user.Email,
+                DateBirth = user.DateBirth
+            };
         }
 
-        public async Task<RegisterUserDto> UpdateUserAsync(long id, RegisterUserDto userDto)
+        public async Task<UsersReadDTO?> UpdateUserAsync(long id, UsersCreateDTO userDto)
         {
-            var user = await _context.users.FindAsync(id);
+            var user = await _context.Users.FindAsync(id);
             if (user == null) return null;
 
-            user.name = userDto.Name;
-            user.last_name = userDto.LastName;
-            user.email = userDto.Email;
-            user.password = PasswordHasher.HashPassword(userDto.Password);
-            user.date_birth = userDto.DateBirth;
+            user.Name = userDto.Name;
+            user.LastName = userDto.LastName;
+            user.Email = userDto.Email;
+            user.Password = PasswordHasher.HashPassword(userDto.Password); // Hashea si es necesario
+            user.DateBirth = userDto.DateBirth;
 
-            _context.users.Update(user);
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
-            return UserMapper.MapUserToRegisterUserDto(user);
+            return new UsersReadDTO
+            {
+                Id = user.Id,
+                Name = user.Name,
+                LastName = user.LastName,
+                Email = user.Email,
+                DateBirth = user.DateBirth
+            };
         }
 
         public async Task<bool> DeleteUserAsync(long id)
         {
-            var user = await _context.users.FindAsync(id);
+            var user = await _context.Users.FindAsync(id);
             if (user == null) return false;
 
-            _context.users.Remove(user);
+            _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return true;
         }

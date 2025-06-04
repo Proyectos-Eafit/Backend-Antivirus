@@ -1,4 +1,4 @@
-using Antivirus.Dtos;
+using Antivirus.DTOs;
 using Antivirus.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,20 +9,20 @@ namespace Antivirus.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Mantén la autorización para el controlador por defecto
+    [Authorize]
     public class OpportunitiesController : ControllerBase
     {
-        private readonly IOpportunitiesService _service;
+        private readonly IOpportunityService _service;
 
-        public OpportunitiesController(IOpportunitiesService service)
+        public OpportunitiesController(IOpportunityService service)
         {
             _service = service;
         }
 
         // GET: api/Opportunities
         [HttpGet]
-        [AllowAnonymous] // Permite acceso sin autorización para este método
-        public async Task<ActionResult<IEnumerable<OpportunitiesDTO>>> GetAll()
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<OpportunitiesReadDTO>>> GetAll()
         {
             var opportunities = await _service.GetAllAsync();
             return Ok(opportunities);
@@ -30,8 +30,8 @@ namespace Antivirus.Controllers
 
         // GET: api/Opportunities/{id}
         [HttpGet("{id}")]
-        [AllowAnonymous] // Permite acceso sin autorización para este método
-        public async Task<ActionResult<OpportunitiesDTO>> GetById(long id)
+        [AllowAnonymous]
+        public async Task<ActionResult<OpportunitiesReadDTO>> GetById(long id)
         {
             var opportunity = await _service.GetByIdAsync(id);
             if (opportunity == null)
@@ -43,21 +43,20 @@ namespace Antivirus.Controllers
 
         // POST: api/Opportunities
         [HttpPost]
-        public async Task<ActionResult<OpportunitiesCreateDTO>> Create(OpportunitiesCreateDTO dto)
+        public async Task<ActionResult<OpportunitiesReadDTO>> Create(OpportunitiesCreateDTO dto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             var createdOpportunity = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), createdOpportunity);
+            return CreatedAtAction(nameof(GetById), new { id = createdOpportunity.Id }, createdOpportunity);
         }
 
         // PUT: api/Opportunities/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult<OpportunitiesCreateDTO>> Update(long id, OpportunitiesCreateDTO dto)
+        public async Task<ActionResult<OpportunitiesReadDTO>> Update(long id, OpportunitiesCreateDTO dto)
         {
-
             var updatedOpportunity = await _service.UpdateAsync(id, dto);
             if (updatedOpportunity == null)
             {

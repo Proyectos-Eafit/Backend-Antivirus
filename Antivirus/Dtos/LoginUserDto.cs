@@ -1,5 +1,5 @@
 public class LoginUserDto
 {
-    public string Email { get; set; } // Correo electrónico del usuario
-    public string Password { get; set; } // Contraseña del usuario
+    public string Email { get; set; } 
+    public string Password { get; set; } 
 }

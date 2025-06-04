@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Antivirus.Models;
 using Antivirus.Services;
 using Antivirus.DTOs;
-using Antivirus.Mappers;
 using System.Security.Cryptography;
 using System.Text;
 using Antivirus.config;
 using Antivirus.Data;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 namespace Antivirus.Controllers
 {
@@ -24,49 +25,59 @@ namespace Antivirus.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterUserDto userDto)
+        public IActionResult Register([FromBody] RegisterDTO registerDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            // Mapear el DTO a la entidad users
-            var user = UserMapper.MapRegisterUserDtoToUser(userDto);
-
             // Verificar si el correo ya está registrado
-            var existingUser = _context.users.FirstOrDefault(u => u.email == userDto.Email);
+            var existingUser = _context.Users.FirstOrDefault(u => u.Email == registerDto.Email);
             if (existingUser != null)
             {
                 return BadRequest(new { message = "El correo electrónico ya está registrado." });
             }
 
-            // Agregar el usuario a la base de datos
-            _context.users.Add(user);
+            // Verificar si ya existe un administrador registrado
+            var existingAdmin = _context.UserRoles.FirstOrDefault(ur => ur.RoleId == 2);
+            if (existingAdmin != null)
+            {
+                return BadRequest(new { message = "Ya existe un administrador registrado." });
+            }
+
+            // Mapear el DTO a la entidad User (solo email y password)
+            var user = new User
+            {
+                Email = registerDto.Email,
+                Password = PasswordHasher.HashPassword(registerDto.Password)
+            };
+
+            _context.Users.Add(user);
             _context.SaveChanges();
 
-            // Asignar el rol "user" automáticamente
-            var defaultRole = _context.role.FirstOrDefault(r => r.name == "user");
-            if (defaultRole != null)
+            // Asignar el rol "admin" automáticamente (rol con ID 2)
+            var adminRole = _context.Roles.FirstOrDefault(r => r.Id == 2);
+            if (adminRole != null)
             {
-                var userRole = new user_roles
+                var userRole = new UserRole
                 {
-                    users_id = user.id, // ID del usuario recién creado
-                    role_id = defaultRole.id // ID del rol "user"
+                    UserId = user.Id,
+                    RoleId = adminRole.Id
                 };
 
-                _context.user_roles.Add(userRole);
+                _context.UserRoles.Add(userRole);
                 _context.SaveChanges();
             }
 
-            return Ok(new { message = "Usuario registrado exitosamente." });
+            return Ok(new { message = "Administrador registrado exitosamente." });
         }
 
-       [HttpPost("login")]
+        [HttpPost("login")]
         public IActionResult Login([FromBody] LoginUserDto loginDto)
         {
             // Buscar el usuario por correo electrónico
-            var existingUser = _context.users.FirstOrDefault(u => u.email == loginDto.Email);
+            var existingUser = _context.Users.FirstOrDefault(u => u.Email == loginDto.Email);
 
             if (existingUser == null)
             {
@@ -76,15 +87,15 @@ namespace Antivirus.Controllers
             // Verificar la contraseña encriptada
             string hashedPassword = PasswordHasher.HashPassword(loginDto.Password);
 
-            if (existingUser.password != hashedPassword)
+            if (existingUser.Password != hashedPassword)
             {
                 return Unauthorized(new { message = "Contraseña incorrecta." });
             }
 
             // Obtener el rol del usuario
-            var userRole = _context.user_roles
-                .Where(ur => ur.users_id == existingUser.id)
-                .Select(ur => ur.role.name)
+            var userRole = _context.UserRoles
+                .Where(ur => ur.UserId == existingUser.Id)
+                .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
                 .FirstOrDefault();
 
             if (userRole == null)
@@ -98,10 +109,10 @@ namespace Antivirus.Controllers
             // Configurar el token como una cookie HTTP-only
             Response.Cookies.Append("token", token, new CookieOptions
             {
-                HttpOnly = true, // La cookie no es accesible desde JavaScript
-                Secure = true, // Solo se envía en conexiones HTTPS
-                SameSite = SameSiteMode.Lax, // Permite solicitudes del mismo sitio
-                Path = "/", // Disponible en toda la aplicación
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
             });
 
             // Retornar el token y el rol en el cuerpo de la respuesta
@@ -109,7 +120,7 @@ namespace Antivirus.Controllers
             {
                 message = "Inicio de sesión exitoso.",
                 token = token,
-                role = userRole // Incluir el rol en la respuesta
+                role = userRole
             });
         }
 

@@ -1,45 +1,45 @@
 using Antivirus.Data;
-using Antivirus.Dtos;
+using Antivirus.DTOs;
 using Antivirus.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace Antivirus.Services
 {
-    public class UsersBootcampsService : IUsersBootcampsService
+    public class UserBootcampService : IUserBootcampService
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
 
-        public UsersBootcampsService(AppDbContext context, IMapper mapper)
+        public UserBootcampService(AppDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<UsersBootcampsDto>> GetAllAsync()
+        public async Task<IEnumerable<UsersBootcampsReadDTO>> GetAllAsync()
         {
-            var entities = await _context.users_bootcamps.ToListAsync();
-            return _mapper.Map<IEnumerable<UsersBootcampsDto>>(entities);
+            var entities = await _context.UserBootcamps.ToListAsync();
+            return _mapper.Map<IEnumerable<UsersBootcampsReadDTO>>(entities);
         }
 
-        public async Task<UsersBootcampsDto?> GetByIdAsync(long id)
+        public async Task<UsersBootcampsReadDTO?> GetByIdAsync(long id)
         {
-            var entity = await _context.users_bootcamps.FindAsync(id);
-            return entity == null ? null : _mapper.Map<UsersBootcampsDto>(entity);
+            var entity = await _context.UserBootcamps.FindAsync(id);
+            return entity == null ? null : _mapper.Map<UsersBootcampsReadDTO>(entity);
         }
 
-        public async Task<UsersBootcampsDto> CreateAsync(UsersBootcampsCreatedDto dto)
+        public async Task<UsersBootcampsReadDTO> CreateAsync(UsersBootcampsCreateDTO dto)
         {
-            var entity = _mapper.Map<users_bootcamps>(dto);
-            _context.users_bootcamps.Add(entity);
+            var entity = _mapper.Map<UserBootcamp>(dto);
+            _context.UserBootcamps.Add(entity);
             await _context.SaveChangesAsync();
-            return _mapper.Map<UsersBootcampsDto>(entity);
+            return _mapper.Map<UsersBootcampsReadDTO>(entity);
         }
 
-        public async Task<bool> UpdateAsync(long id, UsersBootcampsCreatedDto dto)
+        public async Task<bool> UpdateAsync(long id, UsersBootcampsCreateDTO dto)
         {
-            var entity = await _context.users_bootcamps.FindAsync(id);
+            var entity = await _context.UserBootcamps.FindAsync(id);
             if (entity == null) return false;
 
             _mapper.Map(dto, entity);
@@ -49,10 +49,10 @@ namespace Antivirus.Services
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var entity = await _context.users_bootcamps.FindAsync(id);
+            var entity = await _context.UserBootcamps.FindAsync(id);
             if (entity == null) return false;
 
-            _context.users_bootcamps.Remove(entity);
+            _context.UserBootcamps.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }

@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Antivirus.Models;
 using Antivirus.Services;
-using Antivirus.Mappers;
-using System.Security.Cryptography;
-using System.Text;
 using Antivirus.config;
-using Antivirus.Dtos; 
+using Antivirus.DTOs;
 
 namespace Antivirus.Controllers
 {
@@ -31,22 +28,24 @@ namespace Antivirus.Controllers
         public async Task<IActionResult> GetById(long id)
         {
             var benefit = await _benefitService.GetByIdAsync(id);
-            if (benefit == null) return NotFound();
+            if (benefit == null) return NotFound(new { message = "Beneficio no encontrado." });
             return Ok(benefit);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(BenefitCreateDTO dto)
+        public async Task<IActionResult> Create([FromBody] BenefitsCreateDTO dto)
         {
+            // El ID se asigna automáticamente en la base de datos
             var benefit = await _benefitService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = benefit.Id }, benefit);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(long id, BenefitCreateDTO dto)
+        public async Task<IActionResult> Update(long id, [FromBody] BenefitsCreateDTO dto)
         {
+            // Ignorar cualquier intento de modificar el ID
             var benefit = await _benefitService.UpdateAsync(id, dto);
-            if (benefit == null) return NotFound();
+            if (benefit == null) return NotFound(new { message = "Beneficio no encontrado." });
             return Ok(benefit);
         }
 
@@ -54,7 +53,7 @@ namespace Antivirus.Controllers
         public async Task<IActionResult> Delete(long id)
         {
             var deleted = await _benefitService.DeleteAsync(id);
-            if (!deleted) return NotFound();
+            if (!deleted) return NotFound(new { message = "Beneficio no encontrado." });
             return NoContent();
         }
     }

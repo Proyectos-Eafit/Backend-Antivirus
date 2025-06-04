@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Antivirus.Services;
 using Antivirus.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Antivirus.Controllers
 {
@@ -18,27 +20,29 @@ namespace Antivirus.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InstitutionResponseDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<InstitutionsReadDTO>>> GetAll()
         {
             return Ok(await _institutionService.GetAllAsync());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<InstitutionResponseDto>> GetById(long id)
+        public async Task<ActionResult<InstitutionsReadDTO>> GetById(long id)
         {
             var institution = await _institutionService.GetByIdAsync(id);
             if (institution == null)
                 return NotFound();
             return Ok(institution);
         }
+
         [HttpPost]
-        public async Task<ActionResult> Create(InstitutionRequestDto institutionDto)
+        public async Task<ActionResult<InstitutionsReadDTO>> Create(InstitutionsCreateDTO institutionDto)
         {
             var createdInstitution = await _institutionService.CreateAsync(institutionDto);
             return CreatedAtAction(nameof(GetById), new { id = createdInstitution.Id }, createdInstitution);
         }
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(long id, InstitutionRequestDto institutionDto)
+        public async Task<IActionResult> Update(long id, InstitutionsCreateDTO institutionDto)
         {
             var updated = await _institutionService.UpdateAsync(id, institutionDto);
             if (!updated) return NotFound();

@@ -1,10 +1,8 @@
 using Antivirus.Data;
 using Antivirus.Models;
-using Antivirus.Models.DTOs;
-using AutoMapper;
+using Antivirus.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Antivirus.Services
@@ -12,66 +10,82 @@ namespace Antivirus.Services
     public class BootcampService : IBootcampService
     {
         private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
 
-        public BootcampService(AppDbContext context, IMapper mapper)
+        public BootcampService(AppDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<BootcampDto>> GetAllAsync()
+        public async Task<IEnumerable<BootcampReadDTO>> GetAllAsync()
         {
-            var bootcamps = await _context.bootcamps.ToListAsync();
-            return _mapper.Map<IEnumerable<BootcampDto>>(bootcamps);
+            return await _context.Bootcamps
+                .Select(b => new BootcampReadDTO
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Description = b.Description,
+                    ImageUrl = b.ImageUrl,
+                    Status = b.Status
+                })
+                .ToListAsync();
         }
 
-        public async Task<BootcampDto> GetByIdAsync(long id)
+        public async Task<BootcampReadDTO> GetByIdAsync(long id)
         {
-            var bootcamp = await _context.bootcamps.FindAsync(id);
-            return _mapper.Map<BootcampDto>(bootcamp);
-        }
+            var bootcamp = await _context.Bootcamps.FindAsync(id);
+            if (bootcamp == null) return null;
 
-        public async Task CreateAsync(BootcampCreateDto Dto)
-        {
-            var bootcampVar = new bootcamps
+            return new BootcampReadDTO
             {
-                nombre = Dto.Nombre,
-                id_costos_id = Dto.IdCostosId,
-                id_estado_id = Dto.IdEstadoId,
-                id_general_id = Dto.IdGeneralId,
-                id_temas_id = Dto.IdTemasId,
-                informacion = Dto.Informacion, 
-                trial751 = Dto.Trial751
+                Id = bootcamp.Id,
+                Name = bootcamp.Name,
+                Description = bootcamp.Description,
+                ImageUrl = bootcamp.ImageUrl,
+                Status = bootcamp.Status
             };
-            _context.bootcamps.Add(bootcampVar);
+        }
+
+        public async Task CreateAsync(BootcampCreateDTO dto)
+        {
+            var bootcamp = new Bootcamp
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                ImageUrl = dto.ImageUrl,
+                Status = dto.Status
+            };
+            _context.Bootcamps.Add(bootcamp);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<BootcampDto> UpdateAsync(long id, BootcampCreateDto bootcampDto)
+        public async Task<BootcampReadDTO> UpdateAsync(long id, BootcampCreateDTO dto)
         {
-            var bootcamp = await _context.bootcamps.FindAsync(id);
-            if (bootcamp == null)
-                return null;
+            var bootcamp = await _context.Bootcamps.FindAsync(id);
+            if (bootcamp == null) return null;
 
-            // No modificar la propiedad 'id'
-            bootcamp.nombre = bootcampDto.Nombre;
-            bootcamp.id_costos_id = bootcampDto.IdCostosId;
-            bootcamp.id_estado_id = bootcampDto.IdEstadoId;
-            bootcamp.id_general_id = bootcampDto.IdGeneralId;
-            bootcamp.id_temas_id = bootcampDto.IdTemasId;
-            bootcamp.informacion = bootcampDto.Informacion;
+            bootcamp.Name = dto.Name;
+            bootcamp.Description = dto.Description;
+            bootcamp.ImageUrl = dto.ImageUrl;
+            bootcamp.Status = dto.Status;
 
             await _context.SaveChangesAsync();
-            return _mapper.Map<BootcampDto>(bootcamp);
+
+            return new BootcampReadDTO
+            {
+                Id = bootcamp.Id,
+                Name = bootcamp.Name,
+                Description = bootcamp.Description,
+                ImageUrl = bootcamp.ImageUrl,
+                Status = bootcamp.Status
+            };
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var bootcamp = await _context.bootcamps.FindAsync(id);
+            var bootcamp = await _context.Bootcamps.FindAsync(id);
             if (bootcamp == null) return false;
 
-            _context.bootcamps.Remove(bootcamp);
+            _context.Bootcamps.Remove(bootcamp);
             await _context.SaveChangesAsync();
             return true;
         }

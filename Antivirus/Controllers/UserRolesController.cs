@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Antivirus.Dtos;
+using Antivirus.DTOs;
 using Antivirus.Services;
 using Microsoft.AspNetCore.Authorization;
 
@@ -7,57 +7,64 @@ namespace Antivirus.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class UserRolesController : ControllerBase
     {
-        private readonly IUserRolesService _userRolesService;
+        private readonly UserRoleService _userRolesService;
 
-        public UserRolesController(IUserRolesService userRolesService)
+        public UserRolesController(UserRoleService userRolesService)
         {
             _userRolesService = userRolesService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserRolesDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<UserRolesReadDTO>>> GetAll()
         {
             return Ok(await _userRolesService.GetAllAsync());
         }
 
-        [HttpGet("{usersId}/{roleId}")]
-        public async Task<ActionResult<UserRolesDto>> Get(long usersId, long roleId)
+        [HttpGet("{userId}/{roleId}")]
+        public async Task<ActionResult<UserRolesReadDTO>> Get(long userId, long roleId)
         {
-            var userRole = await _userRolesService.GetByIdAsync(usersId, roleId);
+            var userRole = await _userRolesService.GetByIdAsync(userId, roleId);
             if (userRole == null)
-                return NotFound();
+                return NotFound(new { message = "La relación usuario-rol no existe." });
             return Ok(userRole);
         }
 
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult> Create([FromBody] UserRolesCreatedDto dto)
+        public async Task<ActionResult> Create([FromBody] UserRolesCreateDTO dto)
         {
             await _userRolesService.CreateAsync(dto);
-            return CreatedAtAction(nameof(Get), new { usersId = dto.users_id, roleId = dto.role_id }, dto);
+            return CreatedAtAction(nameof(Get), new { userId = dto.UserId, roleId = dto.RoleId }, dto);
         }
 
-        [HttpPut("{usersId}/{roleId}")]
-        public async Task<ActionResult> Update(long usersId, long roleId, [FromBody] UserRolesCreatedDto dto)
+        [Authorize]
+        [HttpPut("{userId}/{roleId}")]
+        public async Task<ActionResult> Update(long userId, long roleId, [FromBody] UserRolesCreateDTO dto)
         {
-            var existingUserRole = await _userRolesService.GetByIdAsync(usersId, roleId);
+            var existingUserRole = await _userRolesService.GetByIdAsync(userId, roleId);
             if (existingUserRole == null)
-                return NotFound();
+                return NotFound(new { message = "La relación usuario-rol no existe." });
 
-            await _userRolesService.UpdateAsync(usersId, roleId, dto);
+            await _userRolesService.UpdateAsync(userId, roleId, dto);
             return NoContent();
         }
 
-        [HttpDelete("{usersId}/{roleId}")]
-        public async Task<ActionResult> Delete(long usersId, long roleId)
+        [Authorize]
+        [HttpDelete("{userId}/{roleId}")]
+        public async Task<ActionResult> Delete(long userId, long roleId)
         {
-            var existingUserRole = await _userRolesService.GetByIdAsync(usersId, roleId);
-            if (existingUserRole == null)
-                return NotFound();
+            // Verificar si el rol tiene usuarios asignados
+            var hasUsersAssigned = await _userRolesService.HasUsersAssignedAsync(roleId);
+            if (hasUsersAssigned)
+                return BadRequest(new { message = "El rol no puede ser eliminado porque tiene usuarios asignados." });
 
-            await _userRolesService.DeleteAsync(usersId, roleId);
+            var existingUserRole = await _userRolesService.GetByIdAsync(userId, roleId);
+            if (existingUserRole == null)
+                return NotFound(new { message = "La relación usuario-rol no existe." });
+
+            await _userRolesService.DeleteAsync(userId, roleId);
             return NoContent();
         }
     }

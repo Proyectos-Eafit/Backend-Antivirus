@@ -12,25 +12,18 @@ namespace Antivirus.config
         {
             // Inyección de dependencias
             services.AddScoped<AuthService>();
-            services.AddScoped<ICostsBootcampService, CostBootcampService>();
+     
             services.AddScoped<IUbicationInstitutionService, UbicationInstitutionService>();
             services.AddScoped<IInstitutionService, InstitutionService>();
-            services.AddScoped<IStatusOpportunitiesService, StatusOpportunitiesService>();
-            services.AddScoped<IDescriptionsBootcampsService, DescriptionsBootcampsService>();
-            services.AddScoped<IInstitutionOpportunitiesService, InstitutionOpportunitiesService>();
-            services.AddScoped<IStatusBootcampService, StatusBootcampService>();
-            services.AddScoped<IUsersBootcampsService, UsersBootcampsService>();
+            services.AddScoped<IInstitutionOpportunityService, InstitutionOpportunityService>();
+            services.AddScoped<IUserBootcampService, UserBootcampService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IBootcampService, BootcampService>();
             services.AddScoped<IRoleService, RoleService>();
-            services.AddScoped<IStatusInstitutionService, StatusInstitutionService>();
-            services.AddScoped<IOpportunitiesService, OpportunitiesService>();
-            services.AddScoped<ICategoriesOpportunitiesService, CategoriesOpportunitiesService>();
-            services.AddScoped<ITypeOpportunityService, TypeOpportunityService>();
-            services.AddScoped<IInstituteBootcampsService, InstituteBootcampsService>();
-            services.AddScoped<IUserRolesService, UserRolesService>();        
-            services.AddScoped<ITopicsBootcampsService, TopicsBootcampsService>();
-            services.AddScoped<IUserOpportunitiesService, UserOpportunitiesService>();
+            services.AddScoped<IOpportunityService, OpportunityService>();
+            services.AddScoped<IInstituteBootcampService, InstituteBootcampService>();
+            services.AddScoped<IUserRoleService, UserRoleService>();        
+            services.AddScoped<IUserOpportunityService, UserOpportunityService>();
             services.AddScoped<IServiceService, ServiceService>();
             services.AddScoped<IBenefitService, BenefitService>();
             // Configuración de la base de datos

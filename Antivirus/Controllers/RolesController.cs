@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Antivirus.Dtos;
+using Antivirus.DTOs;
 using Antivirus.Services;
 using Microsoft.AspNetCore.Authorization;
 
@@ -20,59 +20,44 @@ namespace Antivirus.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RoleDto>>> GetAllRoles()
+        public async Task<ActionResult<IEnumerable<RoleReadDTO>>> GetAllRoles()
         {
             var roles = await _roleService.GetAllRolesAsync();
             return Ok(roles);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<RoleDto>> GetRoleById(long id)
+        public async Task<ActionResult<RoleReadDTO>> GetRoleById(long id)
         {
-            try
-            {
-                var role = await _roleService.GetRoleByIdAsync(id);
-                return Ok(role);
-            }
-            catch (KeyNotFoundException)
-            {
+            var role = await _roleService.GetRoleByIdAsync(id);
+            if (role == null)
                 return NotFound();
-            }
+            return Ok(role);
         }
 
         [HttpPost]
-        public async Task<ActionResult<RoleCreateDto>> CreateRole(RoleCreateDto roleDto)
+        public async Task<ActionResult<RoleReadDTO>> CreateRole([FromBody] RoleCreateDTO roleDto)
         {
             var createdRole = await _roleService.CreateRoleAsync(roleDto);
-            return CreatedAtAction(nameof(GetRoleById), createdRole);
+            return CreatedAtAction(nameof(GetRoleById), new { id = createdRole.Id }, createdRole);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<RoleCreateDto>> UpdateRole(long id, RoleCreateDto roleDto)
+        public async Task<ActionResult<RoleReadDTO>> UpdateRole(long id, [FromBody] RoleCreateDTO roleDto)
         {
-            try
-            {
-                var updatedRole = await _roleService.UpdateRoleAsync(id, roleDto);
-                return Ok(updatedRole);
-            }
-            catch (KeyNotFoundException)
-            {
+            var updatedRole = await _roleService.UpdateRoleAsync(id, roleDto);
+            if (updatedRole == null)
                 return NotFound();
-            }
+            return Ok(updatedRole);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(long id)
         {
-            try
-            {
-                await _roleService.DeleteRoleAsync(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException)
-            {
+            var deleted = await _roleService.DeleteRoleAsync(id);
+            if (!deleted)
                 return NotFound();
-            }
+            return NoContent();
         }
     }
 }
